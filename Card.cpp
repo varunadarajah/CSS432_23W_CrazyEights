@@ -27,9 +27,59 @@ string cardToString(){
     return instanceRank + " of " + suit;
 }
 
+string cardToAscii() {
+    const string suitSymbols[4] = {"♠", "♥", "♣", "♦"};
+
+    string suitSymbol = "";
+    if(suit == "Spades") {
+        suitSymbol = suitSymbols[0];
+    } else if(suit == "Hearts") {
+        suitSymbol = suitSymbols[1];
+    } else if(suit == "Clubs") {
+        suitSymbol = suitSymbols[2];
+    } else if(suit == "Diamonds") {
+        suitSymbol = suitSymbols[3];
+    }
+
+    string rankSymbolTop = "";
+    string rankSymbolBottom = "";
+    if(instanceRank == "10") {
+        rankSymbolTop = "10";
+        rankSymbolBottom = "10";
+    } else if (instanceRank == "Jack") {
+        rankSymbolTop = "J ";
+        rankSymbolBottom = " J";
+    } else if (instanceRank == "Queen") {
+        rankSymbolTop = "Q ";
+        rankSymbolBottom = " Q";
+    } else if (instanceRank == "King") {
+        rankSymbolTop = "K ";
+        rankSymbolBottom = " K";
+    } else if (instanceRank == "Ace") {
+        rankSymbolTop = "A ";
+        rankSymbolBottom = " A";
+    } else {
+        rankSymbolTop = instanceRank + " ";
+        rankSymbolBottom = " " + instanceRank;
+    }
+
+    string cardAscii = "┌─────────┐\n"
+                  "│" + rankSymbolTop + "       │\n"
+                  "│         │\n"
+                  "│         │\n"
+                  "│    " + suitSymbol + "    │\n"
+                  "│         │\n"
+                  "│         │\n"
+                  "│       "+ rankSymbolBottom +"│\n"
+                  "└─────────┘";
+
+    return cardAscii;
+}
+
 void printDeck(){
     for(int i = 0; i < deck.size() ; i++){
-            cout << deck[i].cardToString() << endl;
+        cout << deck[i].cardToString() << endl;
+        cout << deck[i].cardToAscii() << endl;
     }
 }
 
