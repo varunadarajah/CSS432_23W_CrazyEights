@@ -23,10 +23,11 @@ vector<Card> deck;
 
 
 void combineDecks(Card inputDeck){ //adds cards from both decks into the this. object. deletes all cards in inputDeck
-    for(int i = 0; i < inputDeck.deck.size() ; i++){
+    while(inputDeck.deck.size() > 0){
         Card currentCard = inputDeck.removeFromTopOfDeck(inputDeck);
         addToDeck(currentCard.suit, currentCard.instanceRank);
-    }
+        }
+    
 }
 
 bool addToDeck(string suit, string rank){ //returns false if invalid input, true otherwise
@@ -166,6 +167,15 @@ int main(){
     deck1.addToDeck("Spades", "8");
     deck1.removeFromTopOfDeck(deck1);
 
+
+    deck2.addToDeck("Clubs", "2");
+    deck2.addToDeck("Clubs", "3");
+    deck2.addToDeck("Clubs", "4");
+
+    deck1.combineDecks(deck2);
+    cout << "DECK 2===============================================================" << endl;
+    deck2.printDeck();
+    cout << "DECK 1===============================================================" << endl;
     deck1.printDeck();
 
    // card1.makeDeck();
