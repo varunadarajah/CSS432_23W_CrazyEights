@@ -54,7 +54,7 @@ Card removeFromTopOfDeck(Card inputDeck){//removes and returns card at the end(t
         cout << "Trying to remove from empty deck error" << endl;
         return Card();
     }
-    Card removedCard = deck[deck.size()];
+    Card removedCard = deck[deck.size()-1];
     deck.pop_back();
     return removedCard;
 }
@@ -163,7 +163,8 @@ int main(){
     Card deck2;
 
     deck1.addToDeck("Hearts", "Queen");
-    deck1.addToDeck("Spades", "7");
+    deck1.addToDeck("Spades", "8");
+    deck1.removeFromTopOfDeck(deck1);
 
     deck1.printDeck();
 
