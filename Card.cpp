@@ -1,8 +1,6 @@
 /*  Card.cpp 
     2/10/23 8:01PM
     
-    TODO: allow for cards to be added/removed to a deck manually (check for duplicates and spit error?)
-    TODO: allow for decks to be combined using the above functonality
     TODO: probably will need a different class to manage all these decks
 
 */
@@ -22,6 +20,54 @@ public:
 string suit = "";
 string instanceRank = "";
 vector<Card> deck;
+
+
+void combineDecks(Card inputDeck){ //adds cards from both decks into the this. object. deletes all cards in inputDeck
+    for(int i = 0; i < inputDeck.deck.size() ; i++){
+        Card currentCard = inputDeck.removeFromTopOfDeck(inputDeck);
+        addToDeck(currentCard.suit, currentCard.instanceRank);
+    }
+}
+
+bool addToDeck(string suit, string rank){ //returns false if invalid input, true otherwise
+    if(!checkValidCard(suit, rank)){
+        return false;
+    }
+
+    for(int i = 0; i < deck.size() ; i++){
+        if(deck[i].suit == suit && deck[i].instanceRank == rank){
+            cout << "Duplicate card detected, not adding this one to the deck" << endl;
+            return false;
+        }
+    }
+
+    Card newCard = Card(suit, rank);
+    deck.push_back(newCard);
+
+
+    return true;
+}
+
+Card removeFromTopOfDeck(Card inputDeck){//removes and returns card at the end(top) of the vector(deck)
+
+    if(deck.size() == 0){
+        cout << "Trying to remove from empty deck error" << endl;
+        return Card();
+    }
+    Card removedCard = deck[deck.size()];
+    deck.pop_back();
+    return removedCard;
+}
+
+bool checkValidCard( string suit, string rank){ //returns true if valid, false if not
+    if(suit == "Spades" || "Hearts" || "Clubs" || "Diamonds"){
+        if(rank  == "2" || rank  == "3" ||rank  == "4" ||rank  == "5" ||rank  == "6" ||rank  == "7" ||rank  == "8" ||rank  == "9" ||rank  == "10" ||
+         rank == "Jack" || rank == "Queen" || rank == "King" || rank == "Ace");
+
+         return true;
+    }
+    return false;
+}
 
 string cardToString(){
     return instanceRank + " of " + suit;
@@ -113,10 +159,17 @@ Card(string suit1, string rank1){
 };
 
 int main(){
-    Card card1;
-    card1.makeDeck();
-    card1.shuffleDeck();
-    card1.printDeck();
+    Card deck1;
+    Card deck2;
+
+    deck1.addToDeck("Hearts", "Queen");
+    deck1.addToDeck("Spades", "7");
+
+    deck1.printDeck();
+
+   // card1.makeDeck();
+   // card1.shuffleDeck();
+   // card1.printDeck();
 
     return 0;
 }
