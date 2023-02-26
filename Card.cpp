@@ -24,7 +24,7 @@ vector<Card> deck;
 
 void combineDecks(Card inputDeck){ //adds cards from both decks into the this. object. deletes all cards in inputDeck
     while(inputDeck.deck.size() > 0){
-        Card currentCard = inputDeck.removeFromTopOfDeck(inputDeck);
+        Card currentCard = inputDeck.removeFromTopOfDeck();
         addToDeck(currentCard.suit, currentCard.instanceRank);
         }
     
@@ -49,7 +49,7 @@ bool addToDeck(string suit, string rank){ //returns false if invalid input, true
     return true;
 }
 
-Card removeFromTopOfDeck(Card inputDeck){//removes and returns card at the end(top) of the vector(deck)
+Card removeFromTopOfDeck(){//removes and returns card at the end(top) of the vector(deck)
 
     if(deck.size() == 0){
         cout << "Trying to remove from empty deck error" << endl;
@@ -159,6 +159,7 @@ Card(string suit1, string rank1){
 }
 };
 
+/*
 int main(){
     Card deck1;
     Card deck2;
@@ -183,4 +184,4 @@ int main(){
    // card1.printDeck();
 
     return 0;
-}
+}*/
