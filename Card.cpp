@@ -157,6 +157,12 @@ Card(string suit1, string rank1){
     suit = suit1;
     instanceRank = rank1;
 }
+
+Card(Card const &c){
+    suit = c.suit;
+    instanceRank = c.instanceRank;
+}
+
 };
 
 /*

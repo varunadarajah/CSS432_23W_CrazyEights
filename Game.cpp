@@ -1,7 +1,9 @@
 /*  Game.cpp
 
+    TODO: Create a starting menu with how to play
     TODO: Network connectivity
     TODO: Display a player's hand side by side
+    TODO: Numbered label for each card in hand
 */
 
 #include <iostream>
@@ -13,7 +15,7 @@ using namespace std;
 int numOfPlayers = 2;
 
 Card mainDeck; // source deck of cards that is drawn from
-Card currentCard;
+Card *currentCard;
 Card discardDeck;
 Card *playerDecks;
 
@@ -24,19 +26,19 @@ bool dealCard(Card *deck) {
 }
 
 // checks if a card being placed is valid
-bool checkCard(Card newCard) {
-    if(currentCard.suit == newCard.suit) {
+bool checkCard(Card *newCard) {
+    if(currentCard->suit == newCard->suit) {
         return true;
     }
-    if (currentCard.instanceRank == newCard.instanceRank) {
+    if (currentCard->instanceRank == newCard->instanceRank) {
         return true;
     }
 
     return false;
 }
 
-bool checkWinner(Card playerDeck) {
-    if(playerDeck.deck.empty()) {
+bool checkWinner(Card *playerDeck) {
+    if(playerDeck->deck.empty()) {
         return true;
     }
 
@@ -50,25 +52,30 @@ void restockDeck() {
 }
 
 // plays turn for given player deck
-void playTurn(Card playerDeck) {
+void playTurn(Card *playerDeck) {
     cout << "Current Card: " << endl;
-    currentCard.cardToAscii();
+    currentCard->cardToAscii();
+    currentCard->cardToString();
+    cout << currentCard->instanceRank << " of " << currentCard->suit << endl;
 
     cout << "Your hand" << endl;
-    playerDeck.printDeck();
+    playerDeck->printDeck();
 
     int chosenCard;
-    cout << "Choose a card to play: ";
+    cout << "Choose a card to play (enter 0 to draw): ";
     cin >> chosenCard;
+    chosenCard--;
 
-    // if valid card, place
-    if(checkCard(playerDeck.deck[chosenCard])) {
-        discardDeck.addToDeck(currentCard.suit, currentCard.instanceRank);
-        currentCard = playerDeck.deck[chosenCard];
+    if(chosenCard == -1) {
+        dealCard(playerDeck);
+    } else if(checkCard(&playerDeck->deck[chosenCard])) { // if valid card, place
+        discardDeck.addToDeck(currentCard->suit, currentCard->instanceRank);
+        currentCard->suit = playerDeck->deck[chosenCard].suit;
+        currentCard->instanceRank = playerDeck->deck[chosenCard].instanceRank;
 
-        playerDeck.deck.erase(playerDeck.deck.begin() + chosenCard - 1);
+        playerDeck->deck.erase(playerDeck->deck.begin() + chosenCard);
     } else {
-        playTurn(playerDeck);
+        cout << "Invalid play" << endl;
     }
 }
 
@@ -85,14 +92,17 @@ void startGame() {
         }
     }
 
-    currentCard = mainDeck.removeFromTopOfDeck();
+    Card newCard = mainDeck.removeFromTopOfDeck();
+    currentCard = new Card(newCard.suit, newCard.instanceRank);
 
     while(mainDeck.deck.size() > 0) {
         for(int i = 0; i < numOfPlayers; i++) {
-            cout << "Player " << i << " turn" << endl;
-            playTurn(playerDecks[i]);
+            cout << "Player " << i+1 << " turn" << endl;
+            playTurn(&playerDecks[i]);
 
-            if (checkWinner(playerDecks[i])) {
+            if (checkWinner(&playerDecks[i])) {
+                cout << "-----GAME OVER-----" << endl;
+                cout << "Player " << i+1 << " wins!!!" << endl;
                 return;
             }
         }
