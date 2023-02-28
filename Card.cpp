@@ -12,6 +12,7 @@
 #include <random>       
 #include <chrono>       
 #include <array>
+#include <sstream>
 
 using namespace std;
 
@@ -128,6 +129,47 @@ void printDeck(){
         cout << deck[i].cardToString() << endl;
         cout << deck[i].cardToAscii() << endl;
     }
+}
+
+// returns numbered list of cards in deck as string
+string deckList() {
+    string str = "";
+    for(int i = 0; i < deck.size(); i++){
+        str += "(" + to_string(i+1) + ") ";
+        str += deck[i].cardToString();
+        str += "\n";
+    }
+    return str;
+}
+
+// uses stringstream to print out cards in deck side by side
+void printDeckHorizontal() {
+    vector<stringstream> ss;
+
+    // print numbers above card
+    cout << "    ";
+    for(int i = 1; i <= deck.size(); i++){
+        cout << "(" << i << ")" << "         ";
+    }
+    cout << endl;
+
+    for(int i = 0; i < deck.size(); i++){
+        ss.push_back(stringstream(deck[i].cardToAscii()));
+    }
+
+    ss.push_back(stringstream(deckList())); // add string list of cards
+
+    // goes through stringstream and prints out deck line by line
+    for(int j = 0; j < 9; j++) {
+        for(int i = 0; i <= deck.size(); i++){
+            string str;
+            getline(ss[i], str, '\n');
+            cout << str << " ";
+        }
+        cout << endl;
+    }
+
+    cout << endl;
 }
 
 void makeDeck(){
