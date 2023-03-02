@@ -1,4 +1,5 @@
 /*  Game.cpp
+    3/1/23 6:31 PM
 
     TODO: Create a starting menu with how to play
     TODO: Network connectivity
@@ -8,6 +9,12 @@
 
 #include <iostream>
 #include <vector>
+#include <cstring>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <sys/types.h>
 #include "Card.cpp"
 
 using namespace std;
@@ -109,10 +116,117 @@ void startGame() {
     }
 }
 
-int main() {
-    // TODO - network configuration
 
-    startGame();
+int setUpServer(){
+    cout << "setting up server" << endl;
+    int clientCounter = 0;
+    int server_fd;
+    int client_fd;
+    int valread;
+
+    struct sockaddr_in server_addr, client_addr;
+    char buffer[1024] = {0};
+    
+    //create
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0){
+        cerr << "bad sock" << endl;
+        return -1;
+    }
+    
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(21094);
+    //bind
+    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+    {
+        cerr << "bad bind" << endl;
+        return -1;
+    }
+    
+    //listen
+    if (listen(server_fd, 3) < 0)
+    {
+        cerr << "bad listen" << endl;
+        return -1;
+    }
+    
+    socklen_t client_size = sizeof(client_addr);
+    
+    //accepting connections
+    if ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_size)) < 0)
+    {
+        cerr << "bad accept" << endl;
+        return -1;
+    }
+    
+    clientCounter++;
+    cout << "Client #" << clientCounter << " connected" << endl;
+    
+    //reading messages from client
+    while (true)
+    {
+        valread = read(client_fd, buffer, 1024);
+        if (valread == 0)
+        {
+            cout << "Client disconnected" << endl;
+            break;
+        }
+        cout << "Message received: " << buffer << endl;
+        //message back to client
+        send(client_fd, buffer, strlen(buffer), 0);
+        memset(buffer, 0, sizeof(buffer));
+    }
+    
+    close(client_fd);
+    close(server_fd);
+    cout << "offline" << endl;
+    return 1;
+}
+
+int setUpClient(){
+    cout << "setting up client" << endl;
+    int client_fd, valread;
+    struct sockaddr_in server_addr;
+    char buffer[1024] = {0};
+    
+    //create
+    if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        cerr << "bad socket" << endl;
+        return -1;
+    }
+    
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(21094);
+    
+    
+    if (inet_pton(AF_INET, "10.158.82.40"/*csslab10*/, &server_addr.sin_addr) <= 0)
+    {
+        cerr << "invalid address or address not supported" << endl;
+        return -1;
+    }
+
+    //connecting to server
+    if (connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+    {
+        cerr << "connection failed" << endl;
+        return -1;
+    }
+
+    cout << "Connected to server" << endl;
+}
+//no args = client
+//arg = server
+int main(int argc, char *argv[]) {
+    if(argc > 1){
+        setUpServer();
+    }
+    else{
+        setUpClient();
+    }
+    
+
+    //startGame();
 
     return 0;
 }

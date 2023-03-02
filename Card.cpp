@@ -1,7 +1,7 @@
 /*  Card.cpp 
-    2/10/23 8:01PM
     
-    TODO: probably will need a different class to manage all these decks
+    
+    
 
 */
 #include <iostream>
