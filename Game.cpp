@@ -30,6 +30,11 @@ Card *currentCard;
 Card discardDeck;
 Card *playerDecks;
 
+string toSendToClient = "";
+bool needToSendToClient = false;
+string toSendToServer = "";
+bool needToSendToServer = false;
+
 // reshuffle discarded cards into main deck
 void restockDeck() {
     cout << "Restocking deck..." << endl;
@@ -68,17 +73,28 @@ bool checkWinner(Card *playerDeck) {
 
 // plays turn for given player deck
 void playTurn(Card *playerDeck) {
+//TODO should we run this on the client or server? I set up the sendToClient stuff assuming client but we can change this.
+//TODO Might need to split this method into two methods, one method to prompt user to choose card and error check it (client side), and one side to update the decks (server side)
     cout << "Current Card: " << endl;
     cout << currentCard->cardToString() << endl;
     cout << currentCard->cardToAscii() << endl;
     cout << endl;
+
+    
 
     cout << "Your hand" << endl;
     playerDeck->printDeckHorizontal();
 
     int chosenCard;
     cout << "Choose a card to play (enter 0 to draw): ";
+
+   // toSendToClient = "Current Card: \n currentCard->cardToString() \n currentCard->cardToAscii() \n \n Your hand\n TODO";
+   // needToSendToClient = true;
+
     cin >> chosenCard;
+
+    
+
     chosenCard--;
 
     if(chosenCard == -1) {
@@ -92,9 +108,14 @@ void playTurn(Card *playerDeck) {
     } else {
         //system("clear");
         cout << "Invalid play" << endl;
+       // toSendToClient = "Invalid play";
+       // needToSendToClient = true;
         //this_thread::sleep_for(1s);
         playTurn(playerDeck);
     }
+
+    needToSendToServer = chosenCard; //send to server
+    needToSendToServer = true;
 }
 
 void startGame() {
@@ -116,11 +137,17 @@ void startGame() {
     while(true) {
         for(int i = 0; i < numOfPlayers; i++) {
             cout << "Player " << i+1 << " turn" << endl;
+            toSendToClient = "Your turn";//TODO make this only send to the active player's client
+            toSendToClient = "Waiting for other players..."; //TODO make this only send to inactive player's client
+            needToSendToClient = true;
             playTurn(&playerDecks[i]);
 
             if (checkWinner(&playerDecks[i])) {
                 cout << "-----GAME OVER-----" << endl;
                 cout << "Player " << i+1 << " wins!!!" << endl;
+                toSendToClient = "-----GAME OVER-----";
+                needToSendToClient = true;
+
                 return;
             }
         }
@@ -179,7 +206,7 @@ int setUpServer(){
     } else {
         cout << "Response sent" << endl;
     }
-
+        startGame();
     //reading messages from client
     while (true)
     {
@@ -238,6 +265,8 @@ int setUpClient(){
     string str;
     while ((n = recv(client_fd, buffer, sizeof(buffer), 0)) > 0){
         str.append(buffer, n);
+        cout <<  str << endl;
+       // send(client_fd, "got it", strlen("got it"), 0);
     }
     cout << str << endl;
 
