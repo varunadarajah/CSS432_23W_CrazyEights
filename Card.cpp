@@ -1,7 +1,4 @@
 /*  Card.cpp 
-    
-    
-    
 
 */
 #include <iostream>
@@ -143,15 +140,16 @@ string deckList() {
 }
 
 // uses stringstream to print out cards in deck side by side
-void printDeckHorizontal() {
+string printDeckHorizontal() {
+    stringstream output;
     vector<stringstream> ss;
 
     // print numbers above card
-    cout << "    ";
+    output << "    ";
     for(int i = 1; i <= deck.size(); i++){
-        cout << "(" << i << ")" << "         ";
+        output << "(" << i << ")" << "         ";
     }
-    cout << endl;
+    output << endl;
 
     for(int i = 0; i < deck.size(); i++){
         ss.push_back(stringstream(deck[i].cardToAscii()));
@@ -164,12 +162,13 @@ void printDeckHorizontal() {
         for(int i = 0; i <= deck.size(); i++){
             string str;
             getline(ss[i], str, '\n');
-            cout << str << " ";
+            output << str << " ";
         }
-        cout << endl;
+        output << endl;
     }
 
-    cout << endl;
+    output << endl;
+    return output.str();
 }
 
 void makeDeck(){

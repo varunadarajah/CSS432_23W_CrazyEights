@@ -1,39 +1,50 @@
 /*  Game.cpp
-    3/1/23 6:31 PM
+    3/7/23 8:10 PM
 
-    TODO: Create a starting menu with how to play
-    TODO: Network connectivity
-    TODO: Display a player's hand side by side
-    TODO: Numbered label for each card in hand
+    TODO: How to play screen
+
+    TODO optional:
+    - make it so player screen clears after every play so it isn't cluttered, or maybe just print out a line to
+          divide the screen, or any other way to make it easier to read
+    - make server/host screen look nicer (anything cout outside of gameMenu is host output) (not really needed)
+    - move client code to a separate Client.cpp (not really needed but would make code cleaner)
+    - add the 8 card mechanic
+    - option to enter host ip when joining game since right now it's hardcoded
+            - for presentation hardcoded ip might be best if other students are joining
+    - when a player has more than 10 cards in their hand the display kinda gets messed up
+        - also sometimes after a player makes a move the next message where the hand is printed is messed up,
+           i think its a buffer size thing with larger decks
+
 */
 
 #include <iostream>
 #include <vector>
 #include <chrono>
 #include <thread>
-#include "Card.cpp"
-
 #include <cstring>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include <sstream>
 
+#include "Card.cpp"
+#include "Server.cpp"
 
 using namespace std;
 
-int numOfPlayers = 2;
+#define HOST "10.158.82.34"
+
+int numOfPlayers;
 
 Card mainDeck; // source deck of cards that is drawn from
 Card *currentCard;
 Card discardDeck;
 Card *playerDecks;
 
-string toSendToClient = "";
-bool needToSendToClient = false;
-string toSendToServer = "";
-bool needToSendToServer = false;
+Server *s;
+int client_fd, valread;
 
 // reshuffle discarded cards into main deck
 void restockDeck() {
@@ -63,6 +74,7 @@ bool checkCard(Card *newCard) {
     return false;
 }
 
+// checks whether if a player has won / has no more cards left
 bool checkWinner(Card *playerDeck) {
     if(playerDeck->deck.empty()) {
         return true;
@@ -72,28 +84,37 @@ bool checkWinner(Card *playerDeck) {
 }
 
 // plays turn for given player deck
-void playTurn(Card *playerDeck) {
-//TODO should we run this on the client or server? I set up the sendToClient stuff assuming client but we can change this.
-//TODO Might need to split this method into two methods, one method to prompt user to choose card and error check it (client side), and one side to update the decks (server side)
-    cout << "Current Card: " << endl;
-    cout << currentCard->cardToString() << endl;
-    cout << currentCard->cardToAscii() << endl;
-    cout << endl;
+void playTurn(Card *playerDeck, int player) {
+    stringstream ss;
 
-    
+    ss << "Player " << player+1 << " turn" << endl;
 
-    cout << "Your hand" << endl;
-    playerDeck->printDeckHorizontal();
+    ss << "Current Card: " << endl;
+    ss << currentCard->cardToString() << endl;
+    ss << currentCard->cardToAscii() << endl;
+    ss << endl;
+
+    ss << "Your hand: " << endl;
+
+    // print hands & message for waiting players
+    for(int i = 0; i < numOfPlayers; i++) {
+        if(i != player) {
+            s->sendMsg(ss.str(), i);
+            string msg = playerDecks[i].printDeckHorizontal() + "Waiting for Player " + to_string(player+1) + "...\n";
+            s->sendMsg(msg, i);
+        }
+    }
+
+    ss << playerDeck->printDeckHorizontal();
 
     int chosenCard;
-    cout << "Choose a card to play (enter 0 to draw): ";
+    cout << ss.str();
+    s->sendMsg(ss.str(), player);
+    s->sendMsg("YOUR TURN", player);
 
-   // toSendToClient = "Current Card: \n currentCard->cardToString() \n currentCard->cardToAscii() \n \n Your hand\n TODO";
-   // needToSendToClient = true;
+    cout << "Waiting for player move..." << endl;
 
-    cin >> chosenCard;
-
-    
+    chosenCard = stoi(s->receiveMsg(player));
 
     chosenCard--;
 
@@ -106,16 +127,9 @@ void playTurn(Card *playerDeck) {
 
         playerDeck->deck.erase(playerDeck->deck.begin() + chosenCard);
     } else {
-        //system("clear");
-        cout << "Invalid play" << endl;
-       // toSendToClient = "Invalid play";
-       // needToSendToClient = true;
-        //this_thread::sleep_for(1s);
-        playTurn(playerDeck);
+        s->sendMsg("Invalid play\n", player);
+        playTurn(playerDeck, player);
     }
-
-    needToSendToServer = chosenCard; //send to server
-    needToSendToServer = true;
 }
 
 void startGame() {
@@ -137,16 +151,22 @@ void startGame() {
     while(true) {
         for(int i = 0; i < numOfPlayers; i++) {
             cout << "Player " << i+1 << " turn" << endl;
-            toSendToClient = "Your turn";//TODO make this only send to the active player's client
-            toSendToClient = "Waiting for other players..."; //TODO make this only send to inactive player's client
-            needToSendToClient = true;
-            playTurn(&playerDecks[i]);
+
+            playTurn(&playerDecks[i], i);
 
             if (checkWinner(&playerDecks[i])) {
+                // send game over results to clients
+                stringstream ss;
+                ss << "-----GAME OVER-----" << endl;
+                ss << "Player " << i+1 << " wins!!!" << endl;
+                ss << "GAMEOVER";
+
+                for(int k = 0; k < numOfPlayers; k++) {
+                    s->sendMsg(ss.str(), k);
+                }
+
                 cout << "-----GAME OVER-----" << endl;
                 cout << "Player " << i+1 << " wins!!!" << endl;
-                toSendToClient = "-----GAME OVER-----";
-                needToSendToClient = true;
 
                 return;
             }
@@ -154,85 +174,51 @@ void startGame() {
     }
 }
 
-int setUpServer(){
-    cout << "setting up server" << endl;
-    int clientCounter = 0;
-    int server_fd;
-    int client_fd;
-    int valread;
-
-    struct sockaddr_in server_addr, client_addr;
-    char buffer[1024] = {0};
-
-    //create
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0){
-        cerr << "bad sock" << endl;
-        return -1;
+void clientSendMsg(){
+    string chosenCard;
+    cout << "Choose a card to play (enter 0 to draw): ";
+    cin >> chosenCard;
+    if(send(client_fd, chosenCard.c_str(), strlen(chosenCard.c_str()), 0) < 0){
+        cout<<"failed"<< endl;
     }
+}
 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(21094);
-    //bind
-    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
-    {
-        cerr << "bad bind" << endl;
-        return -1;
-    }
-
-    //listen
-    if (listen(server_fd, 3) < 0)
-    {
-        cerr << "bad listen" << endl;
-        return -1;
-    }
-
-    socklen_t client_size = sizeof(client_addr);
-
-    //accepting connections
-    if ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_size)) < 0)
-    {
-        cerr << "bad accept" << endl;
-        return -1;
-    }
-
-    clientCounter++;
-    cout << "Client #" << clientCounter << " connected" << endl;
-
-    // test message
-    Card test = Card("Spades", "10");
-    if (send(client_fd, test.cardToAscii().c_str(), strlen(test.cardToAscii().c_str()), 0) < 0) {
-        cout << "Response send failed" << endl;
-    } else {
-        cout << "Response sent" << endl;
-    }
-        startGame();
-    //reading messages from client
-    while (true)
-    {
-        valread = read(client_fd, buffer, 1024);
-        if (valread == 0)
-        {
-            cout << "Client disconnected" << endl;
-            break;
+// returns false when game over
+bool clientReceiveMsg(){
+    // receive message
+    char buffer[BUFFSIZE];
+    int n = 0;
+    while ((n = recv(client_fd, buffer, sizeof(buffer), 0)) > 0){
+        string str = string(buffer);
+        if(str == "YOUR TURN"){
+            return true;
+        } else if(str == "GAMEOVER") {
+            return false;
         }
-        cout << "Message received: " << buffer << endl;
-        //message back to client
-        send(client_fd, buffer, strlen(buffer), 0);
-        memset(buffer, 0, sizeof(buffer));
+        cout << buffer;
     }
+    return true;
+}
 
-    close(client_fd);
-    close(server_fd);
-    cout << "offline" << endl;
-    return 1;
+void clientPlay(){
+    while(true){
+        if(!clientReceiveMsg()) {
+            return;
+        }
+        clientSendMsg();
+    }
+}
+
+void hostGame(){
+    s = new Server();
+    numOfPlayers = s->clientCounter;
+    startGame();
+    delete(s);
 }
 
 int setUpClient(){
-    cout << "setting up client" << endl;
-    int client_fd, valread;
+    cout << "Setting up client..." << endl;
     struct sockaddr_in server_addr;
-    char buffer[1024] = {0};
 
     //create
     if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -245,7 +231,7 @@ int setUpClient(){
     server_addr.sin_port = htons(21094);
 
 
-    if (inet_pton(AF_INET, "10.158.82.40"/*csslab10*/, &server_addr.sin_addr) <= 0)
+    if (inet_pton(AF_INET, HOST, &server_addr.sin_addr) <= 0)
     {
         cerr << "invalid address or address not supported" << endl;
         return -1;
@@ -259,17 +245,9 @@ int setUpClient(){
     }
 
     cout << "Connected to server" << endl;
+    cout << endl;
 
-    // receive message
-    int n = 0;
-    string str;
-    while ((n = recv(client_fd, buffer, sizeof(buffer), 0)) > 0){
-        str.append(buffer, n);
-        cout <<  str << endl;
-       // send(client_fd, "got it", strlen("got it"), 0);
-    }
-    cout << str << endl;
-
+    clientPlay();
     return 1;
 }
 
@@ -299,7 +277,7 @@ void gameMenu() {
         cin >> option;
 
         if(option == 1) {
-            setUpServer();
+            hostGame();
         } else if(option == 2) {
             setUpClient();
         } else if(option == 3) {
