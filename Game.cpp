@@ -99,9 +99,8 @@ void playTurn(Card *playerDeck, int player) {
     // print hands & message for waiting players
     for(int i = 0; i < numOfPlayers; i++) {
         if(i != player) {
-            s->sendMsg(ss.str(), i);
             string msg = playerDecks[i].printDeckHorizontal() + "Waiting for Player " + to_string(player+1) + "...\n";
-            s->sendMsg(msg, i);
+            s->sendMsg(ss.str() + msg, i);
         }
     }
 
@@ -159,10 +158,10 @@ void startGame() {
                 stringstream ss;
                 ss << "-----GAME OVER-----" << endl;
                 ss << "Player " << i+1 << " wins!!!" << endl;
-                ss << "GAMEOVER";
 
                 for(int k = 0; k < numOfPlayers; k++) {
                     s->sendMsg(ss.str(), k);
+                    s->sendMsg("GAMEOVER", k);
                 }
 
                 cout << "-----GAME OVER-----" << endl;

@@ -77,7 +77,7 @@ public:
             clients.push_back(newClient);
             clientCounter++;
             cout << "Client #" << clientCounter << " connected" << endl;
-            sendMsg("You are Player " + to_string(clientCounter+1), clientCounter); // not working
+            //sendMsg("You are Player " + to_string(clientCounter+1), clientCounter); // not working
         }
     }
 
