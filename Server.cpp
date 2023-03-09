@@ -2,8 +2,7 @@
     3/7/23 8:10 PM
 
     TODO: Start game option for server once all players have joined
-        - right now game just auto starts after 2 players join
-        - might be a Server.cpp thing
+        - right now game just auto starts after max players join
 
 */
 
@@ -23,10 +22,11 @@ using namespace std;
 
 #define PORT 21094
 #define BUFFSIZE 3000
-#define MAXPLAYERS 2
 
 class Server{
 public:
+    int MAXPLAYERS;
+
     int clientCounter = 0;
     int server_fd;
     vector<int> clients;
@@ -34,6 +34,10 @@ public:
 
     // constructor
     Server(){
+        cout << "Enter number of players: ";
+        cin >> MAXPLAYERS;
+        cout << endl;
+
         cout << "Setting up server..." << endl;
 
         struct sockaddr_in server_addr, client_addr;

@@ -1,8 +1,6 @@
 /*  Game.cpp
     3/7/23 8:10 PM
 
-    TODO: How to play screen
-
     TODO optional:
     - make it so player screen clears after every play so it isn't cluttered, or maybe just print out a line to
           divide the screen, or any other way to make it easier to read
@@ -11,9 +9,7 @@
     - add the 8 card mechanic
     - option to enter host ip when joining game since right now it's hardcoded
             - for presentation hardcoded ip might be best if other students are joining
-    - when a player has more than 10 cards in their hand the display kinda gets messed up
-        - also sometimes after a player makes a move the next message where the hand is printed is messed up,
-           i think its a buffer size thing with larger decks
+    - when a player has more than 10 cards in their hand the list only shows up to 9 cards, ascii is still printed though
 
 */
 
@@ -34,7 +30,9 @@
 
 using namespace std;
 
-#define HOST "10.158.82.34"
+#define HOST "10.158.82.40"
+//CSS lab 10: 10.158.82.40
+//CSS lab 4: 10.158.82.34
 
 int numOfPlayers;
 
@@ -156,8 +154,16 @@ void startGame() {
             if (checkWinner(&playerDecks[i])) {
                 // send game over results to clients
                 stringstream ss;
-                ss << "-----GAME OVER-----" << endl;
-                ss << "Player " << i+1 << " wins!!!" << endl;
+                string gameover = "\n"
+                                  " ██████   █████  ███    ███ ███████      ██████  ██    ██ ███████ ██████  \n"
+                                  "██       ██   ██ ████  ████ ██          ██    ██ ██    ██ ██      ██   ██ \n"
+                                  "██   ███ ███████ ██ ████ ██ █████       ██    ██ ██    ██ █████   ██████  \n"
+                                  "██    ██ ██   ██ ██  ██  ██ ██          ██    ██  ██  ██  ██      ██   ██ \n"
+                                  " ██████  ██   ██ ██      ██ ███████      ██████    ████   ███████ ██   ██ \n"
+                                  "                                                                          \n"
+                                  "                                                                          ";
+                ss << gameover << endl;
+                ss << "Player " << i+1 << " wins!!!\n" << endl;
 
                 for(int k = 0; k < numOfPlayers; k++) {
                     s->sendMsg(ss.str(), k);
@@ -189,7 +195,7 @@ bool clientReceiveMsg(){
     int n = 0;
     while ((n = recv(client_fd, buffer, sizeof(buffer), 0)) > 0){
         string str = string(buffer);
-        if(str == "YOUR TURN"){
+        if(str == "YOUR TURN") {
             return true;
         } else if(str == "GAMEOVER") {
             return false;
@@ -251,7 +257,31 @@ int setUpClient(){
 }
 
 void howToPlay() {
-    // TODO
+    system("clear");
+    string str = "\n"
+                 "██   ██  ██████  ██     ██     ████████  ██████      ██████  ██       █████  ██    ██ \n"
+                 "██   ██ ██    ██ ██     ██        ██    ██    ██     ██   ██ ██      ██   ██  ██  ██  \n"
+                 "███████ ██    ██ ██  █  ██        ██    ██    ██     ██████  ██      ███████   ████   \n"
+                 "██   ██ ██    ██ ██ ███ ██        ██    ██    ██     ██      ██      ██   ██    ██    \n"
+                 "██   ██  ██████   ███ ███         ██     ██████      ██      ███████ ██   ██    ██    \n"
+                 "                                                                                      \n"
+                 "                                                                                      \n"
+                 "The main concept of crazy eights is to get rid of all your cards. \n"
+                 "On each turn you will have the opportunity to discard one card, if you have a card that matches the rank or suit of the card on the top of the discard pile\n"
+                 "On your turn, you will be shown the top of the discard pile as well as the cards in your hand.\n"
+                 "\n"
+                 "If you have a card in your hand that matches the rank or suit of the card on top of the discard pile, you may select to discard it. \n"
+                 "Otherwise, you must draw a card from the main deck. Either of these actions ends your turn.\n"
+                 "\n"
+                 "The first player to discard all their cards wins the game.\n"
+                 "\n"
+                 "Note: To simplify and accelerate game pace, two changes have been made from classic crazy eights. Eights function as normal cards, and drawing a card from the main deck ends your turn.\n";
+
+    cout << str << endl;
+
+    cout << "Press enter to return to menu..." << endl;
+    system("read");
+    system("clear");
 }
 
 void gameMenu() {
@@ -290,7 +320,7 @@ void gameMenu() {
 }
 
 int main(int argc, char *argv[]) {
-
+    system("clear");
     gameMenu();
 
     return 0;
