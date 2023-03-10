@@ -81,7 +81,12 @@ public:
             clients.push_back(newClient);
             clientCounter++;
             cout << "Client #" << clientCounter << " connected" << endl;
-            //sendMsg("You are Player " + to_string(clientCounter+1), clientCounter); // not working
+
+            string playerMsg = "You are Player " + to_string(clientCounter) + "\n\n";
+            if(clientCounter != MAXPLAYERS) {
+                playerMsg += "Waiting for more players...\n\n";
+            }
+            sendMsg(playerMsg, clientCounter-1);
         }
     }
 

@@ -7,8 +7,6 @@
     - make server/host screen look nicer (anything cout outside of gameMenu is host output) (not really needed)
     - move client code to a separate Client.cpp (not really needed but would make code cleaner)
     - add the 8 card mechanic
-    - option to enter host ip when joining game since right now it's hardcoded
-            - for presentation hardcoded ip might be best if other students are joining
     - when a player has more than 10 cards in their hand the list only shows up to 9 cards, ascii is still printed though
 
 */
@@ -23,6 +21,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include <netdb.h>
 #include <sstream>
 
 #include "Card.cpp"
@@ -30,7 +29,7 @@
 
 using namespace std;
 
-#define HOST "10.158.82.40"
+//#define HOST "10.158.82.40"
 //CSS lab 10: 10.158.82.40
 //CSS lab 4: 10.158.82.34
 
@@ -222,6 +221,13 @@ void hostGame(){
 }
 
 int setUpClient(){
+    struct hostent *h;
+
+    string HOST;
+    cout << "Enter host address (e.g. csslab10.uwb.edu): ";
+    cin >> HOST;
+    cout << endl;
+
     cout << "Setting up client..." << endl;
     struct sockaddr_in server_addr;
 
@@ -233,10 +239,11 @@ int setUpClient(){
     }
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(21094);
+    server_addr.sin_port = htons(PORT);
 
+    h = gethostbyname(HOST.c_str());
 
-    if (inet_pton(AF_INET, HOST, &server_addr.sin_addr) <= 0)
+    if (inet_pton(AF_INET, inet_ntoa(*(struct in_addr*)h->h_addr), &server_addr.sin_addr) <= 0)
     {
         cerr << "invalid address or address not supported" << endl;
         return -1;
