@@ -1,9 +1,6 @@
 /*  Server.cpp
     3/7/23 8:10 PM
 
-    TODO: Start game option for server once all players have joined
-        - right now game just auto starts after max players join
-
 */
 
 #include <iostream>

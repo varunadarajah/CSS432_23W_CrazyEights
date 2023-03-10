@@ -1,14 +1,6 @@
 /*  Game.cpp
     3/7/23 8:10 PM
 
-    TODO optional:
-    - make it so player screen clears after every play so it isn't cluttered, or maybe just print out a line to
-          divide the screen, or any other way to make it easier to read
-    - make server/host screen look nicer (anything cout outside of gameMenu is host output) (not really needed)
-    - move client code to a separate Client.cpp (not really needed but would make code cleaner)
-    - add the 8 card mechanic
-    - when a player has more than 10 cards in their hand the list only shows up to 9 cards, ascii is still printed though
-
 */
 
 #include <iostream>
