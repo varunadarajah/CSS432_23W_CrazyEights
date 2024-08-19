@@ -2,8 +2,10 @@
 ![image](https://github.com/user-attachments/assets/37c5c578-029d-4cce-866e-6da59f44bb44)
 
 ## Compiling and Running Instructions
-In linux lab with all files copied, run the following command to compile: g++ Game.cpp Card.cpp Server.cpp -o crazyEights
-Then run the crazyEights file with ./crazyEights
+In linux with all files copied, run the following command to compile: 
+```g++ Game.cpp Card.cpp Server.cpp -o crazyEights```
+
+Then run the crazyEights file with ```./crazyEights```
 
 ## How to Play
 From the host computer, run the compiled game and enter “1” to start the host server. It will then ask for the number of players you want for your game. Enter “2” for the minimum. The host server will then start listening for incoming client connections.
