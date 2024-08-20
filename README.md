@@ -12,10 +12,11 @@ From the host computer, run the compiled game and enter “1” to start the hos
 From two separate computers, run the game and enter “2” from the menu to join a game. Enter the host address or IP to join the game. Once all players have joined, the game will automatically start.
 On your turn, you will be shown the top of the discard pile as well as the cards in your hand. If you have a card in your hand that matches the rank or suit of the card on top of the discard pile, you may select to discard it (Enter its corresponding number) Otherwise, you must draw a card from the main deck (Enter 0). Either of these actions ends your turn. 
 The first player to discard all their cards wins the game. 
+
 Note: To simplify and accelerate game pace, two changes have been made from classic crazy eights. Eights function as normal cards, and drawing a card from the main deck ends your turn.
 
 ## Implementation
-The game is made up of 3 classes, Card.cpp, Server.cpp, and Game.cpp.
+The game is made up of 3 classes: Card.cpp, Server.cpp, and Game.cpp.
 
 ### Card.cpp:
 This class defines the way the cards and decks work and interact with each other. It allows cards to store a rank and suit variable. It also allows for decks of card objects to be created can be added to, removed from, or combined with the appropriate error checking. Decks can have cards manually added/removed from it, or can be automatically populated with all the cards found in a standard deck (52). It allows for cards to be printed in ASCII art or as a simple string.
